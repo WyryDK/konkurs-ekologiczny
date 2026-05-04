@@ -7,6 +7,7 @@
     body { font-family: Arial; max-width: 600px; margin: 40px auto; }
     .hidden { display: none; }
     button { margin-top: 20px; }
+    #result { margin-top: 20px; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -32,6 +33,8 @@
   <form id="quizForm"></form>
   <button onclick="submitQuiz()">Wyślij</button>
 </div>
+
+<div id="result" class="hidden"></div>
 
 <script>
 let startTime;
@@ -101,7 +104,6 @@ function submitQuiz() {
     time: duration
   };
 
-  // ZAPIS DO GOOGLE SHEETS (PRZEZ WEBHOOK - np. Make/Zapier)
   fetch('https://hook.eu1.make.com/your-webhook', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -109,8 +111,11 @@ function submitQuiz() {
   })
   .then(() => {
     localStorage.setItem('quizDone', 'true');
-    alert('Wysłano!');
-    location.reload();
+
+    document.getElementById('quiz').classList.add('hidden');
+    const resultDiv = document.getElementById('result');
+    resultDiv.classList.remove('hidden');
+    resultDiv.innerHTML = `Dziękujemy za udział!<br>Czas rozwiązania: <b>${duration} sekund</b>`;
   })
   .catch(() => alert('Błąd wysyłki'));
 }
