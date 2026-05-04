@@ -91,33 +91,20 @@ function submitQuiz() {
 
   const formData = new FormData(document.getElementById('quizForm'));
 
-  let answers = [];
-  questions.forEach((q, i) => {
-    answers.push(formData.get('q' + i));
-  });
+  // sprawdzenie czy wszystkie odpowiedzi zaznaczone
+  for (let i = 0; i < questions.length; i++) {
+    if (!formData.get('q' + i)) {
+      alert('Odpowiedz na wszystkie pytania');
+      return;
+    }
+  }
 
-  const data = {
-    name: document.getElementById('name').value,
-    surname: document.getElementById('surname').value,
-    email: document.getElementById('email').value,
-    answers: answers,
-    time: duration
-  };
+  localStorage.setItem('quizDone', 'true');
 
-  fetch('https://hook.eu1.make.com/your-webhook', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  })
-  .then(() => {
-    localStorage.setItem('quizDone', 'true');
-
-    document.getElementById('quiz').classList.add('hidden');
-    const resultDiv = document.getElementById('result');
-    resultDiv.classList.remove('hidden');
-    resultDiv.innerHTML = `Dziękujemy za udział!<br>Czas rozwiązania: <b>${duration} sekund</b>`;
-  })
-  .catch(() => alert('Błąd wysyłki'));
+  document.getElementById('quiz').classList.add('hidden');
+  const resultDiv = document.getElementById('result');
+  resultDiv.classList.remove('hidden');
+  resultDiv.innerHTML = `Dziękujemy za udział!<br>Czas rozwiązania: <b>${duration} sekund</b>`;
 }
 </script>
 
