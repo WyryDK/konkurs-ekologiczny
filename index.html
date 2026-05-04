@@ -13,6 +13,7 @@
 <body>
 
 <h1>Konkurs</h1>
+<p><b>Konkurs trwa od 8 czerwca do 24 czerwca 2026</b></p>
 
 <div id="form-user">
   <h3>Dane uczestnika</h3>
@@ -22,7 +23,12 @@
 
   <label>
     <input type="checkbox" id="rodo" required>
-    Wyrażam zgodę na przetwarzanie danych osobowych (RODO)
+    Akceptuję <a href="#" target="_blank">RODO</a>
+  </label><br>
+
+  <label>
+    <input type="checkbox" id="rules" required>
+    Akceptuję <a href="#" target="_blank">regulamin konkursu</a>
   </label><br><br>
 
   <button onclick="startQuiz()">Rozpocznij</button>
@@ -44,6 +50,15 @@ if (localStorage.getItem('quizDone')) {
   document.body.innerHTML = '<h2>Już brałeś udział w konkursie.</h2>';
 }
 
+// BLOKADA POZA DATĄ
+const now = new Date();
+const startDate = new Date('2026-06-08T00:00:00');
+const endDate = new Date('2026-06-24T23:59:59');
+
+if (now < startDate || now > endDate) {
+  document.body.innerHTML = '<h2>Konkurs jest nieaktywny.</h2>';
+}
+
 const questions = [
   { question: "Pytanie 1", answers: ["Odpowiedź A","Odpowiedź B","Odpowiedź C"] },
   { question: "Pytanie 2", answers: ["Odpowiedź A","Odpowiedź B","Odpowiedź C"] },
@@ -57,16 +72,17 @@ function startQuiz() {
   const surname = document.getElementById('surname').value;
   const email = document.getElementById('email').value;
   const rodo = document.getElementById('rodo').checked;
+  const rules = document.getElementById('rules').checked;
 
-  if (!name || !surname || !email || !rodo) {
-    alert('Wypełnij wszystkie pola i zaakceptuj RODO');
+  if (!name || !surname || !email || !rodo || !rules) {
+    alert('Wypełnij wszystkie pola i zaakceptuj zgody');
     return;
   }
 
   document.getElementById('form-user').classList.add('hidden');
   document.getElementById('quiz').classList.remove('hidden');
 
-  startTime = Date.now();
+  startTime = performance.now();
   renderQuestions();
 }
 
@@ -86,12 +102,11 @@ function renderQuestions() {
 }
 
 function submitQuiz() {
-  const endTime = Date.now();
-  const duration = Math.round((endTime - startTime)/1000);
+  const endTime = performance.now();
+  const duration = ((endTime - startTime) / 1000).toFixed(2);
 
   const formData = new FormData(document.getElementById('quizForm'));
 
-  // sprawdzenie czy wszystkie odpowiedzi zaznaczone
   for (let i = 0; i < questions.length; i++) {
     if (!formData.get('q' + i)) {
       alert('Odpowiedz na wszystkie pytania');
@@ -104,7 +119,7 @@ function submitQuiz() {
   document.getElementById('quiz').classList.add('hidden');
   const resultDiv = document.getElementById('result');
   resultDiv.classList.remove('hidden');
-  resultDiv.innerHTML = `Dziękujemy za udział!<br>Czas rozwiązania: <b>${duration} sekund</b>`;
+  resultDiv.innerHTML = `Dziękujemy za udział!<br>Czas rozwiązania: <b>${duration} sekundy</b>`;
 }
 </script>
 
