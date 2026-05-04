@@ -13,7 +13,7 @@
 <body>
 
 <h1>Konkurs</h1>
-<p><b>Konkurs trwa od 8 czerwca do 24 czerwca 2026</b></p>
+<p><b>Konkurs trwa od 8 kwietnia 2026 do 24 czerwca 2026</b></p>
 
 <div id="form-user">
   <h3>Dane uczestnika</h3>
@@ -28,7 +28,7 @@
 
   <label>
     <input type="checkbox" id="rules" required>
-    Akceptuję <a href="/konkurs-ekologiczny/regulamin.html" target="_bank">regulamin konkursu</a>
+    Akceptuję <a href="/konkurs-ekologiczny/regulamin.html" target="_blank">regulamin konkursu</a>
   </label><br><br>
 
   <button onclick="startQuiz()">Rozpocznij</button>
@@ -50,13 +50,15 @@ if (localStorage.getItem('quizDone')) {
   document.body.innerHTML = '<h2>Już brałeś udział w konkursie.</h2>';
 }
 
-// BLOKADA POZA DATĄ
+// DATY KONKURSU
 const now = new Date();
-const startDate = new Date('2026-06-04T00:00:00');
+const startDate = new Date('2026-04-08T00:00:00');
 const endDate = new Date('2026-06-24T23:59:59');
 
-if (now < startDate || now > endDate) {
-  document.body.innerHTML = '<h2>Konkurs jest nieaktywny.</h2>';
+if (now < startDate) {
+  document.body.innerHTML = '<h2>Konkurs rozpocznie się w dniu 8.04.2026</h2>';
+} else if (now > endDate) {
+  document.body.innerHTML = '<h2>Konkurs zakończył się w dniu 24.06.2026</h2>';
 }
 
 const questions = [
@@ -119,7 +121,7 @@ function submitQuiz() {
   document.getElementById('quiz').classList.add('hidden');
   const resultDiv = document.getElementById('result');
   resultDiv.classList.remove('hidden');
-  resultDiv.innerHTML = `Dziękujemy za udział!<br>Czas rozwiązania: <b>${duration} sekundy</b>`;
+  resultDiv.innerHTML = `Dziękujemy za udział!<br>Czas rozwiązania: <b>${duration} sekund</b>`;
 }
 </script>
 
