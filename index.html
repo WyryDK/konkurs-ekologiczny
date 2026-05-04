@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Konkurs</title>
+  <style>
+    body { font-family: Arial; max-width: 600px; margin: 40px auto; }
+    .hidden { display: none; }
+    button { margin-top: 20px; }
+  </style>
+</head>
+<body>
+
+<h1>Konkurs</h1>
+
+<div id="form-user">
+  <h3>Dane uczestnika</h3>
+  <input type="text" id="name" placeholder="Imię" required><br><br>
+  <input type="text" id="surname" placeholder="Nazwisko" required><br><br>
+  <input type="email" id="email" placeholder="Email" required><br><br>
+
+  <label>
+    <input type="checkbox" id="rodo" required>
+    Wyrażam zgodę na przetwarzanie danych osobowych (RODO)
+  </label><br><br>
+
+  <button onclick="startQuiz()">Rozpocznij</button>
+</div>
+
+<div id="quiz" class="hidden">
+  <h3>Quiz</h3>
+  <form id="quizForm"></form>
+  <button onclick="submitQuiz()">Wyślij</button>
+</div>
+
+<script>
+let startTime;
+
+// BLOKADA WIELOKROTNEGO UDZIAŁU
+if (localStorage.getItem('quizDone')) {
+  document.body.innerHTML = '<h2>Już brałeś udział w konkursie.</h2>';
+}
+
+const questions = [
+  { question: "Pytanie 1", answers: ["Odpowiedź A","Odpowiedź B","Odpowiedź C"] },
+  { question: "Pytanie 2", answers: ["Odpowiedź A","Odpowiedź B","Odpowiedź C"] },
+  { question: "Pytanie 3", answers: ["Odpowiedź A","Odpowiedź B","Odpowiedź C"] },
+  { question: "Pytanie 4", answers: ["Odpowiedź A","Odpowiedź B","Odpowiedź C"] },
+  { question: "Pytanie 5", answers: ["Odpowiedź A","Odpowiedź B","Odpowiedź C"] }
+];
+
+function startQuiz() {
+  const name = document.getElementById('name').value;
+  const surname = document.getElementById('surname').value;
+  const email = document.getElementById('email').value;
+  const rodo = document.getElementById('rodo').checked;
+
+  if (!name || !surname || !email || !rodo) {
+    alert('Wypełnij wszystkie pola i zaakceptuj RODO');
+    return;
+  }
+
+  document.getElementById('form-user').classList.add('hidden');
+  document.getElementById('quiz').classList.remove('hidden');
+
+  startTime = Date.now();
+  renderQuestions();
+}
+
+function renderQuestions() {
+  const form = document.getElementById('quizForm');
+  form.innerHTML = '';
+
+  questions.forEach((q, i) => {
+    const div = document.createElement('div');
+    div.innerHTML = `<p>${i+1}. ${q.question}</p>` +
+      q.answers.map((a) =>
+        `<label><input type="radio" name="q${i}" value="${a}" required> ${a}</label><br>`
+      ).join('');
+
+    form.appendChild(div);
+  });
+}
+
+function submitQuiz() {
+  const endTime = Date.now();
+  const duration = Math.round((endTime - startTime)/1000);
+
+  const formData = new FormData(document.getElementById('quizForm'));
+
+  let answers = [];
+  questions.forEach((q, i) => {
+    answers.push(formData.get('q' + i));
+  });
+
+  const data = {
+    name: document.getElementById('name').value,
+    surname: document.getElementById('surname').value,
+    email: document.getElementById('email').value,
+    answers: answers,
+    time: duration
+  };
+
+  // ZAPIS DO GOOGLE SHEETS (PRZEZ WEBHOOK - np. Make/Zapier)
+  fetch('https://hook.eu1.make.com/your-webhook', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  })
+  .then(() => {
+    localStorage.setItem('quizDone', 'true');
+    alert('Wysłano!');
+    location.reload();
+  })
+  .catch(() => alert('Błąd wysyłki'));
+}
+</script>
+
+</body>
+</html>
