@@ -44,8 +44,9 @@
 
 <script>
 let startTime;
+let userEmail = '';
 
-// BLOKADA WIELOKROTNEGO UDZIAŁU
+// BLOKADA WIELOKROTNEGO UDZIAŁU (frontend)
 if (localStorage.getItem('quizDone')) {
   document.body.innerHTML = '<h2>Już brałeś udział w konkursie.</h2>';
 }
@@ -61,13 +62,8 @@ if (now < startDate) {
   document.body.innerHTML = '<h2>Konkurs zakończył się w dniu 24.06.2026</h2>';
 }
 
-const questions = [
-  { question: "Pytanie 1", answers: ["Odpowiedź A","Odpowiedź B","Odpowiedź C"] },
-  { question: "Pytanie 2", answers: ["Odpowiedź A","Odpowiedź B","Odpowiedź C"] },
-  { question: "Pytanie 3", answers: ["Odpowiedź A","Odpowiedź B","Odpowiedź C"] },
-  { question: "Pytanie 4", answers: ["Odpowiedź A","Odpowiedź B","Odpowiedź C"] },
-  { question: "Pytanie 5", answers: ["Odpowiedź A","Odpowiedź B","Odpowiedź C"] }
-];
+// PYTANIA POBIERANE Z BACKENDU
+let questions = [];
 
 function startQuiz() {
   const name = document.getElementById('name').value;
@@ -81,11 +77,33 @@ function startQuiz() {
     return;
   }
 
-  document.getElementById('form-user').classList.add('hidden');
-  document.getElementById('quiz').classList.remove('hidden');
+  userEmail = email;
 
-  startTime = performance.now();
-  renderQuestions();
+  // SPRAWDZENIE NA SERWERZE CZY EMAIL JUŻ BYŁ
+  fetch('/api/check-email?email=' + encodeURIComponent(email))
+    .then(res => res.json())
+    .then(data => {
+      if (data.exists) {
+        alert('Ten email już brał udział w konkursie');
+        return;
+      }
+
+      loadQuestions();
+    });
+}
+
+function loadQuestions() {
+  fetch('/api/questions')
+    .then(res => res.json())
+    .then(data => {
+      questions = data;
+
+      document.getElementById('form-user').classList.add('hidden');
+      document.getElementById('quiz').classList.remove('hidden');
+
+      startTime = performance.now();
+      renderQuestions();
+    });
 }
 
 function renderQuestions() {
@@ -109,12 +127,26 @@ function submitQuiz() {
 
   const formData = new FormData(document.getElementById('quizForm'));
 
+  let answers = [];
   for (let i = 0; i < questions.length; i++) {
-    if (!formData.get('q' + i)) {
+    const val = formData.get('q' + i);
+    if (!val) {
       alert('Odpowiedz na wszystkie pytania');
       return;
     }
+    answers.push(val);
   }
+
+  // WYSYŁKA DO BACKENDU (zapis + blokada)
+  fetch('/api/submit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      email: userEmail,
+      answers: answers,
+      time: duration
+    })
+  });
 
   localStorage.setItem('quizDone', 'true');
 
