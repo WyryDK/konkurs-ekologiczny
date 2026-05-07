@@ -1,1 +1,161 @@
-index.html
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Konkurs</title>
+  <style>
+    body { font-family: Arial; max-width: 600px; margin: 40px auto; }
+    .hidden { display: none; }
+    button { margin-top: 20px; }
+    #result { margin-top: 20px; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+<h1>Konkurs</h1>
+<p><b>Konkurs trwa od 8 kwietnia 2026 do 24 czerwca 2026</b></p>
+
+<div id="form-user">
+  <h3>Dane uczestnika</h3>
+  <input type="text" id="name" placeholder="Imię" required><br><br>
+  <input type="text" id="surname" placeholder="Nazwisko" required><br><br>
+  <input type="email" id="email" placeholder="Email" required><br><br>
+
+  <label>
+    <input type="checkbox" id="rodo" required>
+    Akceptuję <a href="/konkurs-ekologiczny/RODO.html" target="_blank">RODO</a>
+  </label><br>
+
+  <label>
+    <input type="checkbox" id="rules" required>
+    Akceptuję <a href="/konkurs-ekologiczny/regulamin.html" target="_blank">regulamin konkursu</a>
+  </label><br><br>
+
+  <button onclick="startQuiz()">Rozpocznij</button>
+</div>
+
+<div id="quiz" class="hidden">
+  <h3>Quiz</h3>
+  <form id="quizForm"></form>
+  <button onclick="submitQuiz()">Wyślij</button>
+</div>
+
+<div id="result" class="hidden"></div>
+
+<script>
+let startTime;
+let userEmail = '';
+
+// BLOKADA WIELOKROTNEGO UDZIAŁU (frontend)
+if (localStorage.getItem('quizDone')) {
+  document.body.innerHTML = '<h2>Już brałeś udział w konkursie.</h2>';
+}
+
+// DATY KONKURSU
+const now = new Date();
+const startDate = new Date('2026-04-08T00:00:00');
+const endDate = new Date('2026-06-24T23:59:59');
+
+if (now < startDate) {
+  document.body.innerHTML = '<h2>Konkurs rozpocznie się w dniu 8.04.2026</h2>';
+} else if (now > endDate) {
+  document.body.innerHTML = '<h2>Konkurs zakończył się w dniu 24.06.2026</h2>';
+}
+
+// PYTANIA POBIERANE Z BACKENDU
+let questions = [];
+
+function startQuiz() {
+  const name = document.getElementById('name').value;
+  const surname = document.getElementById('surname').value;
+  const email = document.getElementById('email').value;
+  const rodo = document.getElementById('rodo').checked;
+  const rules = document.getElementById('rules').checked;
+
+  if (!name || !surname || !email || !rodo || !rules) {
+    alert('Wypełnij wszystkie pola i zaakceptuj zgody');
+    return;
+  }
+
+  userEmail = email;
+
+  // SPRAWDZENIE NA SERWERZE CZY EMAIL JUŻ BYŁ
+  fetch('/api/check-email?email=' + encodeURIComponent(email))
+    .then(res => res.json())
+    .then(data => {
+      if (data.exists) {
+        alert('Ten email już brał udział w konkursie');
+        return;
+      }
+
+      loadQuestions();
+    });
+}
+
+function loadQuestions() {
+  fetch('/api/questions')
+    .then(res => res.json())
+    .then(data => {
+      questions = data;
+
+      document.getElementById('form-user').classList.add('hidden');
+      document.getElementById('quiz').classList.remove('hidden');
+
+      startTime = performance.now();
+      renderQuestions();
+    });
+}
+
+function renderQuestions() {
+  const form = document.getElementById('quizForm');
+  form.innerHTML = '';
+
+  questions.forEach((q, i) => {
+    const div = document.createElement('div');
+    div.innerHTML = `<p>${i+1}. ${q.question}</p>` +
+      q.answers.map((a) =>
+        `<label><input type="radio" name="q${i}" value="${a}" required> ${a}</label><br>`
+      ).join('');
+
+    form.appendChild(div);
+  });
+}
+
+function submitQuiz() {
+  const endTime = performance.now();
+  const duration = ((endTime - startTime) / 1000).toFixed(2);
+
+  const formData = new FormData(document.getElementById('quizForm'));
+
+  let answers = [];
+  for (let i = 0; i < questions.length; i++) {
+    const val = formData.get('q' + i);
+    if (!val) {
+      alert('Odpowiedz na wszystkie pytania');
+      return;
+    }
+    answers.push(val);
+  }
+
+  // WYSYŁKA DO BACKENDU (zapis + blokada)
+  fetch('/api/submit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      email: userEmail,
+      answers: answers,
+      time: duration
+    })
+  });
+
+  localStorage.setItem('quizDone', 'true');
+
+  document.getElementById('quiz').classList.add('hidden');
+  const resultDiv = document.getElementById('result');
+  resultDiv.classList.remove('hidden');
+  resultDiv.innerHTML = `Dziękujemy za udział!<br>Czas rozwiązania: <b>${duration} sekund</b>`;
+}
+</script>
+
+</body>
+</html>
