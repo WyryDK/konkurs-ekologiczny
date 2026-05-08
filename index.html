@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
   <meta charset="UTF-8">
-  <title>Konkurs ekologiczny</title>
+  <title>Konkurs</title>
   <style>
     body { font-family: Arial; max-width: 600px; margin: 40px auto; }
     .hidden { display: none; }
@@ -12,8 +12,8 @@
 </head>
 <body>
 
-<h1>Konkurs ekologiczny</h1>
-<p><b>Konkurs trwa od 8 kwietnia 2026 do 24 czerwca 2026</b></p>
+<h1>Konkurs</h1>
+<p><b>Konkurs trwa od 8 maja 2026 do 24 czerwca 2026</b></p>
 
 <div id="form-user">
   <h3>Dane uczestnika</h3>
@@ -53,7 +53,7 @@ if (localStorage.getItem('quizDone')) {
 
 // DATY KONKURSU
 const now = new Date();
-const startDate = new Date('2026-04-08T00:00:00');
+const startDate = new Date('2026-05-08T00:00:00');
 const endDate = new Date('2026-06-24T23:59:59');
 
 if (now < startDate) {
@@ -80,7 +80,7 @@ function startQuiz() {
   userEmail = email;
 
   // SPRAWDZENIE NA SERWERZE CZY EMAIL JUŻ BYŁ
-  fetch('https://konkurs-ekologiczny.onrender.com/api/check-email?email=' + encodeURIComponent(email))
+  fetch('/api/check-email?email=' + encodeURIComponent(email))
     .then(res => res.json())
     .then(data => {
       if (data.exists) {
@@ -93,7 +93,7 @@ function startQuiz() {
 }
 
 function loadQuestions() {
-  fetch('https://konkurs-ekologiczny.onrender.com/api/questions')
+  fetch('/api/questions')
     .then(res => res.json())
     .then(data => {
       questions = data;
@@ -138,7 +138,7 @@ function submitQuiz() {
   }
 
   // WYSYŁKA DO BACKENDU (zapis + blokada)
-  fetch('https://konkurs-ekologiczny.onrender.com/api/submit', {
+  fetch('/api/submit', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
