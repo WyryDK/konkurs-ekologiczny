@@ -80,7 +80,7 @@ function startQuiz() {
   userEmail = email;
 
   // SPRAWDZENIE NA SERWERZE CZY EMAIL JUŻ BYŁ
-  fetch('https://quiz-backend.onrender.com/api/check-email?email=' + encodeURIComponent(email))
+  fetch('https://konkurs-ekologiczny.onrender.com/api/check-email?email=' + encodeURIComponent(email))
     .then(res => res.json())
     .then(data => {
       if (data.exists) {
@@ -93,7 +93,7 @@ function startQuiz() {
 }
 
 function loadQuestions() {
-  fetch('https://quiz-backend.onrender.com/api/questions')
+  fetch('https://konkurs-ekologiczny.onrender.com/api/questions')
     .then(res => res.json())
     .then(data => {
       questions = data;
@@ -138,7 +138,7 @@ function submitQuiz() {
   }
 
   // WYSYŁKA DO BACKENDU (zapis + blokada)
-  fetch('https://quiz-backend.onrender.com/api/submit', {
+  fetch('https://konkurs-ekologiczny.onrender.com/api/submit', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
