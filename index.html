@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
   <meta charset="UTF-8">
-  <title>Konkurs v0.1</title>
+  <title>Konkurs v0.2</title>
   <style>
     body { font-family: Arial; max-width: 600px; margin: 40px auto; }
     .hidden { display: none; }
@@ -80,7 +80,7 @@ function startQuiz() {
   userEmail = email;
 
   // SPRAWDZENIE NA SERWERZE CZY EMAIL JUŻ BYŁ
-  fetch('/api/check-email?email=' + encodeURIComponent(email))
+  fetch('https://quiz-backend-kt3u.onrender.com/api/check-email?email=' + encodeURIComponent(email))
     .then(res => res.json())
     .then(data => {
       if (data.exists) {
@@ -93,7 +93,7 @@ function startQuiz() {
 }
 
 function loadQuestions() {
-  fetch('/api/questions')
+  fetch('https://quiz-backend-kt3u.onrender.com/api/questions')
     .then(res => res.json())
     .then(data => {
       questions = data;
@@ -138,7 +138,7 @@ function submitQuiz() {
   }
 
   // WYSYŁKA DO BACKENDU (zapis + blokada)
-  fetch('/api/submit', {
+  fetch('https://quiz-backend-kt3u.onrender.com/api/submit', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
