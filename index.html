@@ -133,9 +133,11 @@ function submitQuiz() {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      email: userEmail,
-      answers: answers,
-      time: duration
+    name: document.getElementById('name').value,
+    surname: document.getElementById('surname').value,
+    email: document.getElementById('email').value,
+    answers: answers,
+    time: duration
     })
   });
 
