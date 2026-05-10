@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
   <meta charset="UTF-8">
-  <title>Konkurs v0.2</title>
+  <title>Konkurs v0.3</title>
   <style>
     body { font-family: Arial; max-width: 600px; margin: 40px auto; }
     .hidden { display: none; }
@@ -45,11 +45,6 @@
 <script>
 let startTime;
 let userEmail = '';
-
-// BLOKADA WIELOKROTNEGO UDZIAŁU (frontend)
-if (localStorage.getItem('quizDone')) {
-  document.body.innerHTML = '<h2>Już brałeś udział w konkursie.</h2>';
-}
 
 // DATY KONKURSU
 const now = new Date();
@@ -97,10 +92,8 @@ function loadQuestions() {
     .then(res => res.json())
     .then(data => {
       questions = data;
-
       document.getElementById('form-user').classList.add('hidden');
       document.getElementById('quiz').classList.remove('hidden');
-
       startTime = performance.now();
       renderQuestions();
     });
@@ -124,9 +117,7 @@ function renderQuestions() {
 function submitQuiz() {
   const endTime = performance.now();
   const duration = ((endTime - startTime) / 1000).toFixed(2);
-
   const formData = new FormData(document.getElementById('quizForm'));
-
   let answers = [];
   for (let i = 0; i < questions.length; i++) {
     const val = formData.get('q' + i);
