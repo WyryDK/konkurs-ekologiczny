@@ -38,8 +38,8 @@ Akceptuję regulamin
 Akceptuję RODO
 </label><br><br>
 
-<div class="cf-turnstile" data-sitekey="0x4AAAAAADNW2v__gciRO1kI"></div><br>
-
+<div id="turnstile"></div>
+  
 <button onclick="start()">Rozpocznij</button>
 
 </div>
@@ -48,44 +48,82 @@ Akceptuję RODO
 
 <script>
 
-let token=null
-let answers=[]
+let captchaToken = null
+let captchaRendered = false
+let quizToken = null
+let startTime = null
+
+function renderCaptcha(){
+
+  if(captchaRendered) return
+  captchaRendered = true
+
+  turnstile.render('#turnstile', {
+    sitekey: 'TWÓJ_SITE_KEY',
+    callback: function(token){
+      captchaToken = token
+    }
+  })
+
+}
 
 async function start(){
 
-const reg=document.getElementById('reg').checked
-const rodo=document.getElementById('rodo').checked
+  const name = document.getElementById('name').value.trim()
+  const surname = document.getElementById('surname').value.trim()
+  const email = document.getElementById('email').value.trim()
 
-if(!reg || !rodo){
-alert('Musisz zaakceptować regulamin i RODO')
-return
-}
+  const reg = document.getElementById('reg').checked
+  const rodo = document.getElementById('rodo').checked
 
-const res=await fetch('/api/start',{
-method:'POST',
-headers:{'Content-Type':'application/json'},
-body:JSON.stringify({
-name:document.getElementById('name').value,
-surname:document.getElementById('surname').value,
-email:document.getElementById('email').value,
-captcha:turnstile.getResponse()
-})
-})
+  if(!name || !surname || !email){
+    alert('Uzupełnij dane')
+    return
+  }
 
-const data=await res.json()
+  if(name.length>20 || surname.length>20){
+    alert('Max 20 znaków')
+    return
+  }
 
-if(!data.token){
-alert(data.error)
-return
-}
+  if(!reg || !rodo){
+    alert('Wymagane zgody')
+    return
+  }
 
-token=data.token
+  renderCaptcha()
 
-document.getElementById('start').style.display='none'
-document.getElementById('quiz').style.display='block'
+  if(!captchaToken){
+    alert('Potwierdź CAPTCHA')
+    return
+  }
 
-render(data.questions)
+  startTime = Date.now()
 
+  const res = await fetch('/api/start',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      name,
+      surname,
+      email,
+      captcha: captchaToken
+    })
+  })
+
+  const data = await res.json()
+
+  if(!data.token){
+    alert(data.error)
+    return
+  }
+
+  quizToken = data.token
+
+  document.getElementById('start').style.display='none'
+  document.getElementById('quiz').style.display='block'
+
+  renderQuiz(data.questions)
 }
 
 function render(qs){
@@ -93,29 +131,19 @@ function render(qs){
 let html=''
 
 qs.forEach((q,i)=>{
-
 html+=`<div><b>${q.q}</b><br>`
-
 q.a.forEach((a,j)=>{
-
 html+=`<label><input type="radio" name="q${i}" value="${j}">${a}</label><br>`
-
 })
-
 html+='</div><br>'
-
 })
 
 html+=`<button onclick="submitQuiz()">Wyślij</button>`
-
 document.getElementById('quiz').innerHTML=html
-
 }
 
 async function submitQuiz(){
-
 answers=[]
-
 for(let i=0;i<5;i++){
 answers.push(
 document.querySelector(`input[name="q${i}"]:checked`)?.value
@@ -129,9 +157,7 @@ body:JSON.stringify({token,answers})
 })
 
 const data=await res.json()
-
 alert(`Wynik: ${data.score}/5 | Czas: ${data.time}s`)
-
 }
 
 </script>
