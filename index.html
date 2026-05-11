@@ -2,75 +2,138 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<meta name="robots" content="noindex,nofollow">
-<title>Konkurs</title>
+<meta name="robots" content="noindex,nofollow,noarchive,nosnippet">
+<title>Konkurs Ekologiczny 2026</title>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js"></script>
 </head>
+
 <body>
 
-<div id="start">
-<input id="name" maxlength="10" placeholder="Imię">
-<input id="surname" maxlength="16" placeholder="Nazwisko"><br><br>
-<input id="email" type="email" maxlength="32" placeholder="Email">
+<h2>Konkurs Ekologiczny</h2>
 
-<div class="cf-turnstile" data-sitekey="YOUR_SITE_KEY"></div>
+<p>
+Termin: <b>08.04.2026 – 24.06.2026</b>
+</p>
+
+<p>
+<a href="/konkurs-ekologiczny/regulamin.html" target="_blank">Regulamin</a> |
+<a href="/konkurs-ekologiczny/RODO.html" target="_blank">RODO</a>
+</p>
+
+<hr>
+
+<div id="start">
+
+<input id="name" maxlength="10" placeholder="Imię"><br>
+<input id="surname" maxlength="20" placeholder="Nazwisko"><br>
+<input id="email" type="email" maxlength="32" placeholder="Email"><br><br>
+
+<label>
+<input type="checkbox" id="reg">
+Akceptuję regulamin
+</label><br>
+
+<label>
+<input type="checkbox" id="rodo">
+Akceptuję RODO
+</label><br><br>
+
+<div class="cf-turnstile" data-sitekey="YOUR_SITE_KEY"></div><br>
 
 <button onclick="start()">Rozpocznij</button>
+
 </div>
 
 <div id="quiz" style="display:none"></div>
 
 <script>
+
 let token=null
 let answers=[]
 
 async function start(){
-  const res=await fetch('/api/start',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({
-      name:document.getElementById('name').value,
-      surname:document.getElementById('surname').value,
-      email:document.getElementById('email').value,
-      captcha:turnstile.getResponse()
-    })
-  })
-  const data=await res.json()
-  if(!data.token){alert(data.error);return}
-  token=data.token
-  document.getElementById('start').style.display='none'
-  document.getElementById('quiz').style.display='block'
-  render(data.questions)
+
+const reg=document.getElementById('reg').checked
+const rodo=document.getElementById('rodo').checked
+
+if(!reg || !rodo){
+alert('Musisz zaakceptować regulamin i RODO')
+return
+}
+
+const res=await fetch('/api/start',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({
+name:document.getElementById('name').value,
+surname:document.getElementById('surname').value,
+email:document.getElementById('email').value,
+captcha:turnstile.getResponse()
+})
+})
+
+const data=await res.json()
+
+if(!data.token){
+alert(data.error)
+return
+}
+
+token=data.token
+
+document.getElementById('start').style.display='none'
+document.getElementById('quiz').style.display='block'
+
+render(data.questions)
+
 }
 
 function render(qs){
-  let html=''
-  qs.forEach((q,i)=>{
-    html+=`<div>${q.q}<br>`
-    q.a.forEach((a,j)=>{
-      html+=`<label><input type="radio" name="q${i}" value="${j}">${a}</label><br>`
-    })
-    html+='</div>'
-  })
-  html+=`<button onclick="submitQuiz()">Wyślij</button>`
-  document.getElementById('quiz').innerHTML=html
+
+let html=''
+
+qs.forEach((q,i)=>{
+
+html+=`<div><b>${q.q}</b><br>`
+
+q.a.forEach((a,j)=>{
+
+html+=`<label><input type="radio" name="q${i}" value="${j}">${a}</label><br>`
+
+})
+
+html+='</div><br>'
+
+})
+
+html+=`<button onclick="submitQuiz()">Wyślij</button>`
+
+document.getElementById('quiz').innerHTML=html
+
 }
 
 async function submitQuiz(){
-  answers=[]
-  for(let i=0;i<5;i++){
-    answers.push(document.querySelector(`input[name="q${i}"]:checked`)?.value)
-  }
 
-  const res=await fetch('/api/submit',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({token,answers})
-  })
+answers=[]
 
-  const data=await res.json()
-  alert(`Wynik: ${data.score}/5 | Czas: ${data.time}s`)
+for(let i=0;i<5;i++){
+answers.push(
+document.querySelector(`input[name="q${i}"]:checked`)?.value
+)
 }
+
+const res=await fetch('/api/submit',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({token,answers})
+})
+
+const data=await res.json()
+
+alert(`Wynik: ${data.score}/5 | Czas: ${data.time}s`)
+
+}
+
 </script>
 
 </body>
