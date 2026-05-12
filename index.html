@@ -102,7 +102,7 @@ async function start(){
 
   startTime = Date.now()
 
-  const res = await fetch('/api/start',{
+  const res = await fetch('${API}/api/start',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({
@@ -152,7 +152,7 @@ document.querySelector(`input[name="q${i}"]:checked`)?.value
 )
 }
 
-const res=await fetch('/api/submit',{
+const res=await fetch('${API}/api/submit',{
 method:'POST',
 headers:{'Content-Type':'application/json'},
 body:JSON.stringify({token,answers})
