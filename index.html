@@ -115,9 +115,8 @@ async function start(){
   
 const text = await res.text()
 console.log(text)
+  const data = JSON.parse(text)
   
-  const data = await res.json()
-
   if(!data.token){
     alert(data.error)
     return
