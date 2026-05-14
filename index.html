@@ -67,5 +67,253 @@ margin-bottom:15px;
 margin-left:5px;
 }
 
+label{
+display:block;
+margin-top:5px;
 }
-  
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Konkurs Ekologiczny</h2>
+
+<p>
+Termin konkursu: <b>08.04.2026 – 24.06.2026</b>
+</p>
+
+<div id="start">
+
+<div class="row">
+<input id="name" type="text" maxlength="12" placeholder="Imię">
+<input id="surname" type="text" maxlength="20" placeholder="Nazwisko">
+</div>
+
+<div class="row">
+<input id="email" type="email" maxlength="32" placeholder="Email">
+</div>
+
+<div class="links">
+<label>
+<input type="checkbox" id="reg">
+Akceptuję
+<a href="/konkurs-ekologiczny/regulamin.html" target="_blank">regulamin</a>
+</label>
+
+<label>
+<input type="checkbox" id="rodo">
+Akceptuję
+<a href="/konkurs-ekologiczny/RODO.html" target="_blank">RODO</a>
+</label>
+</div>
+
+<div id="turnstile"></div>
+<br>
+<button onclick="start()">Rozpocznij</button>
+
+</div>
+
+<div id="quiz" style="display:none"></div>
+
+</div>
+
+<script>
+
+const API='https://quiz-backend-kt3u.onrender.com'
+const SITEKEY='0x4AAAAAADNW2v__gciRO1kI'
+
+let captchaRendered=false
+let captchaToken=null
+let quizToken=null
+
+function validateEmail(email){
+return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+}
+
+function validateForm(){
+
+const name=document.getElementById('name').value.trim()
+const surname=document.getElementById('surname').value.trim()
+const email=document.getElementById('email').value.trim()
+
+if(!name || !surname || !email){
+alert('Uzupełnij wszystkie pola')
+return false
+}
+
+if(name.length>12){
+alert('Imię max 12 znaków')
+return false
+}
+
+if(surname.length>20){
+alert('Nazwisko max 20 znaków')
+return false
+}
+
+if(email.length>32){
+alert('Email max 32 znaki')
+return false
+}
+
+if(!validateEmail(email)){
+alert('Niepoprawny email')
+return false
+}
+
+if(!document.getElementById('reg').checked ||
+!document.getElementById('rodo').checked){
+alert('Wymagane zgody')
+return false
+}
+
+return true
+}
+
+function start(){
+
+if(!validateForm()) return
+
+if(captchaRendered && !captchaToken){
+alert('Potwierdź CAPTCHA')
+return
+}
+
+if(captchaToken){
+realStart()
+return
+}
+
+captchaRendered=true
+
+turnstile.render('#turnstile',{
+sitekey:SITEKEY,
+callback:function(token){
+captchaToken=token
+realStart()
+}
+})
+
+}
+
+async function realStart(){
+
+try{
+
+const response=await fetch(`${API}/api/start`,{
+method:'POST',
+headers:{
+'Content-Type':'application/json'
+},
+body:JSON.stringify({
+name:document.getElementById('name').value.trim(),
+surname:document.getElementById('surname').value.trim(),
+email:document.getElementById('email').value.trim(),
+captcha:captchaToken
+})
+})
+
+const text=await response.text()
+console.log(text)
+
+const data=JSON.parse(text)
+
+if(!data.token){
+alert(data.error || 'Błąd startu')
+return
+}
+
+quizToken=data.token
+
+document.getElementById('start').style.display='none'
+document.getElementById('quiz').style.display='block'
+
+renderQuiz(data.questions)
+
+}catch(e){
+console.error(e)
+alert('Błąd połączenia z backendem')
+}
+
+}
+
+function renderQuiz(questions){
+
+let html=''
+
+questions.forEach((q,index)=>{
+
+html+=`<div class="question">`
+html+=`<b>${q.q}</b><br><br>`
+
+q.a.forEach((answer,answerIndex)=>{
+html+=`
+<label>
+<input type="radio" name="q${index}" value="${answerIndex}">
+${answer}
+</label>
+`
+})
+
+html+=`</div>`
+
+})
+
+html+=`<button onclick="submitQuiz()">Wyślij odpowiedzi</button>`
+
+document.getElementById('quiz').innerHTML=html
+
+}
+
+async function submitQuiz(){
+
+const answers=[]
+
+for(let i=0;i<5;i++){
+
+const checked=document.querySelector(`input[name="q${i}"]:checked`)
+
+if(!checked){
+alert('Odpowiedz na wszystkie pytania')
+return
+}
+
+answers.push(parseInt(checked.value))
+
+}
+
+try{
+
+const response=await fetch(`${API}/api/submit`,{
+method:'POST',
+headers:{
+'Content-Type':'application/json'
+},
+body:JSON.stringify({
+token:quizToken,
+answers
+})
+})
+
+const data=await response.json()
+
+document.getElementById('quiz').innerHTML=`
+<h2>Dziękujemy za udział w konkursie</h2>
+<p><b>Twój wynik:</b> ${data.score}/5</p>
+<p><b>Czas rozwiązania:</b> ${data.time}s</p>
+<p>Wyniki zostały zapisane.</p>
+`
+
+}catch(e){
+console.error(e)
+alert('Błąd wysyłania')
+}
+
+}
+
+</script>
+
+</body>
+</html>
