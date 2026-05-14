@@ -176,15 +176,7 @@ function start(){
 
 if(!validateForm()) return
 
-if(captchaRendered && !captchaToken){
-alert('Potwierdź CAPTCHA')
-return
-}
-
-if(captchaToken){
-realStart()
-return
-}
+if(captchaRendered) return
 
 captchaRendered=true
 
@@ -317,3 +309,4 @@ alert('Błąd wysyłania')
 
 </body>
 </html>
+
