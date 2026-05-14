@@ -165,7 +165,7 @@ return false
 
 if(!document.getElementById('reg').checked ||
 !document.getElementById('rodo').checked){
-alert('Wymagane zgody')
+alert('Zaakceptuj wymagane zgody RODO oraz regulamin konkursu')
 return false
 }
 
@@ -226,7 +226,7 @@ renderQuiz(data.questions)
 
 }catch(e){
 console.error(e)
-alert('Błąd połączenia z backendem')
+alert('Błąd połączenia z serwerem')
 }
 
 }
